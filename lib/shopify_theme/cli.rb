@@ -54,6 +54,19 @@ module ShopifyTheme
       end
 
       exit(1) if result.cannot_access_api? && exit_on_failure
+
+      if APIChecker.new(ShopifyTheme).is_main_theme
+        main_theme_action = config.fetch('if_main_theme', 'allow')
+        if main_theme_action == 'ask'
+          say("You are editing the main theme. Are you sure?", :yellow)
+          if ask("Continue? (Y/N): ") == "N"
+            exit(1)
+          end
+        elsif main_theme_action == 'block'
+          say("Configured to block changes to main theme.", :yellow)
+          exit(1)
+        end
+      end
     end
 
     desc "configure API_KEY PASSWORD STORE THEME_ID", "generate a config file for the store to connect to"
@@ -207,8 +220,21 @@ module ShopifyTheme
 
     protected
 
+    def rcconfig
+      rcname = '.themerc'
+      @rcconfig ||= if File.exists?(rcname)
+        YAML.load_file(rcname)
+      else
+        {}
+      end
+    end
+
+    def ymlconfig
+      @ymlconfig ||= YAML.load_file 'config.yml'
+    end
+
     def config
-      @config ||= YAML.load_file 'config.yml'
+      @config ||= ymlconfig.merge(rcconfig)
     end
 
     def shop_theme_url

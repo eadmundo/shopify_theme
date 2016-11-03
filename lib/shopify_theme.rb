@@ -143,6 +143,22 @@ module ShopifyTheme
     shopify.get(path)
   end
 
+  def self.get_themes
+    response = shopify.get("/admin/themes.json")
+    JSON.parse(response.body)['themes']
+  end
+
+  def self.theme
+    @theme ||= begin
+      if config[:theme_id]
+        response = shopify.get("/admin/themes/#{config[:theme_id]}.json")
+        JSON.parse(response.body)['theme']
+      else
+        shopify.get_themes.find {|t| t['role'] == 'main'}
+      end
+    end
+  end
+
   private
   def self.shopify
     headers 'X-Shopify-Access-Token' => config[:password] || config[:access_token]

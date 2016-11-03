@@ -35,6 +35,10 @@ module ShopifyTheme
       return APIResult.new(client.get_index)
     end
 
+    def is_main_theme
+      return client.theme['role'] == 'main'
+    end
+
     private
     attr_reader :client
   end
